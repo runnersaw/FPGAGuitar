@@ -1,2 +1,4 @@
 *.bak
 work/*
+vsim.wlf
+modelsim.ini
