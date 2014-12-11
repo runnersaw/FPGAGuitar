@@ -1,19 +1,19 @@
 module frequencyGen(clk, controlSignals, soundWave);
 
 input clk;
-input[7:0] controlSignals;
+input[2:0] controlSignals;
 output reg soundWave = 0;
 
 reg[19:0] clkDivider;
 reg[19:0] counter = 1;
 
-parameter A = 7'b1000000;
-parameter B = 7'b0100000;
-parameter C = 7'b0010000;
-parameter D = 7'b0001000;
-parameter E = 7'b0000100;
-parameter F = 7'b0000010;
-parameter G = 7'b0000001;
+parameter A = 3'd0;
+parameter B = 3'd1;
+parameter C = 3'd2;
+parameter D = 3'd3;
+parameter E = 3'd4;
+parameter F = 3'd5;
+parameter G = 3'd6;
 
 parameter clkSpeed = 25; //megahertz
 parameter aFreq = 220;
@@ -63,7 +63,7 @@ endmodule
 module testFreqGen;
 
 reg clk = 0;
-reg[7:0] controlSignals = 7'b1000000;
+reg[2:0] controlSignals = 3'd0;
 wire soundWave;
 
 frequencyGen generator(clk, controlSignals, soundWave);
@@ -71,7 +71,7 @@ frequencyGen generator(clk, controlSignals, soundWave);
 always #10 clk=!clk;
 
 initial begin
-#25000000 controlSignals = 7'b0000001;
+#25000000 controlSignals = 3'd6;
 end
 endmodule
 
