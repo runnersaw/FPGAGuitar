@@ -1,14 +1,72 @@
-module topLevel(clk, sw, out);
+module topLevel(clk, sw, btn, out);
 input[7:0] sw;
+input btn;
 wire[2:0] controlSignal;
-wire strummerPos, strummerNeg;
+wire btnPosEdge, btnNegEdge, note;
+wire [6:0] noteOfSong;
 input clk;
 
 output out;
 
-inputconditioner conditioner(clk, sw[0], strummerPos, strummerNeg);
-controlSignalGen control(clk, sw[7:1], strummerPos, strummerNeg, controlSignal);
+
+inputconditioner btnConditioner(clk, btn, btnPosEdge, btnNegEdge);
+
+always @(posedge clk) begin
+	if(btnPosEdge) begin
+		songStored songStored(clk, noteOfSong);
+		guitar guitar(clk, noteOfSong, note);
+	end else begin
+		guitar guitar(clk, sw, note);
+	end
+
+
+
+
+assign out = note;
+
+end 
+
+endmodule
+
+
+module guitar(clk, switches, out);
+
+input[7:0] switches;
+wire[2:0] controlSignal;
+wire strummerPos, strummerNeg, btnPosEdge, btnNegEdge;
+input clk;
+
+output out;
+
+inputconditioner conditioner(clk, switches[0], strummerPos, strummerNeg);
+controlSignalGen control(clk, switches[7:1], strummerPos, strummerNeg, controlSignal);
 frequencyGen frequency(clk, controlSignal, out);
+
+
+endmodule
+
+module songStored(clk, note);
+input clk;
+output note;
+reg[31:0] time;
+reg[6:0] musicSheet [100:0];
+reg[100:0] index;
+
+
+// how are we gonna parse the notes?
+
+initial $readmemb("whateverWeNameTheFile.mem", musicSheet);
+
+always @(posedge clk) begin
+	if (time == 0) begin
+		index <= index + 1;
+		time <= 100000000
+	end else begin
+		time <= time + 1;
+	end
+end
+
+assign note = musicSheet[index]
 
 endmodule
 

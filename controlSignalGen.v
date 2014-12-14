@@ -1,39 +1,41 @@
-module controlSignalGen(switches, controlSignal);
+module controlSignalGen(clk, switches, strummerPos, strummerNeg, controlSignal);
 
-input[7:0] switches;
+input[6:0] switches;
+input strummerPos, strummerNeg, clk;
 output reg[2:0] controlSignal = 0;
 
 wire[6:0] inputControl;
-wire strummer;
+wire strummerEdge;
 
-assign inputControl = {switches[7:1]};
-assign strummer = {switches[0]};
+or orgate(strummerEdge, strummerPos, strummerNeg);
 
-always @(edge strummer) begin
-	controlSignal = 6;
-	case(inputControl)
-		7'b1000000: begin
-			controlSignal = 6;
-		end
-		7'b0100000: begin
-			controlSignal = 5;
-		end
-		7'b0010000: begin
-			controlSignal = 4;
-		end
-		7'b0001000: begin
-			controlSignal = 3;
-		end
-		7'b0000100: begin
-			controlSignal = 2;
-		end
-		7'b0000010: begin
-			controlSignal = 1;
-		end
-		7'b0000001: begin
-			controlSignal = 0;
-		end
-	endcase
+always @(posedge clk) begin
+	if (strummerEdge) begin
+		controlSignal = 6;
+		case(switches)
+			7'b1000000: begin
+				controlSignal = 6;
+			end
+			7'b0100000: begin
+				controlSignal = 5;
+			end
+			7'b0010000: begin
+				controlSignal = 4;
+			end
+			7'b0001000: begin
+				controlSignal = 3;
+			end
+			7'b0000100: begin
+				controlSignal = 2;
+			end
+			7'b0000010: begin
+				controlSignal = 1;
+			end
+			7'b0000001: begin
+				controlSignal = 0;
+			end
+		endcase
+	end
 end
 endmodule
 

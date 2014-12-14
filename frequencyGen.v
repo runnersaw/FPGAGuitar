@@ -4,7 +4,7 @@ input clk;
 input[2:0] controlSignals;
 output reg soundWave = 0;
 
-reg[19:0] clkDivider;
+reg[15:0] clkDivider;
 reg[19:0] counter = 1;
 
 parameter A = 3'd0;
@@ -57,7 +57,6 @@ always @(posedge clk) begin
 		end
 	endcase
 end
-
 endmodule
 
 module testFreqGen;
