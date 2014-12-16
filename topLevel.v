@@ -2,9 +2,8 @@ module topLevel(clk, sw, btn, out, led);
 
 input[7:0] sw;
 input btn;
-wire[2:0] switchControlSignal;
-wire[2:0] noteControlSignal;
 wire[2:0] controlSignal;
+wire songOut, freqOut;
 wire btnPos, btnNeg;
 reg songSelect = 0;
 
@@ -13,8 +12,6 @@ input clk;
 
 output out;
 output[7:0] led;
-
-wire[6:0] useless;
 
 inputconditioner btnCond(clk, btn, btnPos, btnNeg);
 
@@ -25,59 +22,151 @@ always @(posedge clk) begin
 end
 
 inputconditioner conditioner(clk, sw[0], strummerPos, strummerNeg);
-controlSignalGen control(clk, sw[7:1], strummerPos, strummerNeg, switchControlSignal, useless[6:0]);
-songGenerator songGen(clk, noteControlSignal);
-mux3bit mux(switchControlSignal, noteControlSignal, songSelect, controlSignal);
-frequencyGen frequency(clk, controlSignal, out);
+controlSignalGen control(clk, sw[7:1], strummerPos, strummerNeg, controlSignal, led[6:0]);
+songGenerator songGen(clk, songOut);
+frequencyGen frequency(clk, controlSignal, freqOut);
+mux1bit mux(freqOut, songOut, songSelect, out);
 
 assign led[7] = songSelect;
-assign led[6:4] = controlSignal;
-assign led[3:1] = switchControlSignal;
-assign led[0] = songSelect;
 
 endmodule
 
-module songGenerator(clk, note);
+module songGenerator(clk, out);
 input clk;
-output[2:0] note;
+output out;
 
-reg[31:0] t = 0;
-reg[30:0] musicSheet;
-reg[100:0] index = 0;
+reg[10:0] state = 0;
 
-parameter A = 3'd0;
-parameter B = 3'd1;
-parameter C = 3'd2;
-parameter D = 3'd3;
-parameter E = 3'd4;
-parameter F = 3'd5;
-parameter G = 3'd6;
-parameter none = 3'd7;
+parameter clkSpeed = 50000000;
+reg[3:0] noteTime = 1; // length of note second
+reg[31:0] clkDivider;
+reg[31:0] counter = 0;
+reg loopCounter = 0;
+reg[1:0] nextCounter = 0;
 
-
-initial musicSheet = {A, B, C, D, E, F, G};
-
-// how are we gonna parse the notes?
-//initial $readmemh("whateverWeNameTheFile.mem", musicSheet);
+parameter eflat4Freq = 310;
+parameter dflat4Freq = 276;
+parameter dflat5Freq = 554;
+parameter aflat4Freq = 414;
+parameter gflat4Freq = 370;
+parameter gflat5Freq = 740;
+parameter f5Freq = 698;
 
 always @(posedge clk) begin
-	if (t == 0) begin
-		if (index == 6) begin
-			index <= 0;
-		end
-		else begin 
-			index <= index + 3;
-			t <= 25000000;
-		end
+	if (counter == 0) begin
+		case(state)
+			0: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/dflat4Freq/2;
+				state <= 1;
+			end
+			1: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/dflat5Freq/2;
+				state <= 2;
+			end
+			2: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/aflat4Freq/2;
+				state <= 3;
+			end
+			3: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/gflat4Freq/2;
+				state <= 4;
+			end
+			4: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/gflat5Freq/2;
+				state <= 5;
+			end
+			5: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/aflat4Freq/2;
+				state <= 6;
+			end
+			6: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/f5Freq/2;
+				state <= 7;
+			end
+			7: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/aflat4Freq/2;
+				if (loopCounter == 1) begin
+					if (nextCounter == 0) begin
+						state <= 8;
+						nextCounter <= 1;
+					end 
+					if (nextCounter == 1) begin
+						state <= 9;
+						nextCounter <= 2;
+					end 
+					if (nextCounter == 2) begin
+						state <= 10;
+						nextCounter <= 3;
+					end 
+					if (nextCounter == 3) begin
+						state <= 0;
+						nextCounter <= 4;
+					end 
+					loopCounter = 0;
+				end else begin
+					if (nextCounter == 0) begin
+						state <= 0;
+					end 
+					if (nextCounter == 1) begin
+						state <= 8;
+					end 
+					if (nextCounter == 2) begin
+						state <= 9;
+					end 
+					if (nextCounter == 3) begin
+						state <= 10;
+					end 
+					loopCounter = 1;
+				end
+			end
+			8: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/eflat4Freq/2;
+				state <= 1;
+			end
+			9: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/gflat4Freq/2;
+				state <= 1;
+			end
+			10: begin
+				noteTime = 1;
+				clkDivider = clkSpeed/dflat4Freq/2;
+				state <= 1;
+			end
+		endcase
+		counter <= clkSpeed*noteTime/4;
 	end else begin
-		t <= t + 1;
+		counter <= counter-1;
 	end
 end
 
+songFreqGen freqGen(clk, clkDivider, out);
 
-assign note[2] = musicSheet[index];
-assign note[1] = musicSheet[index+1];
-assign note[0] = musicSheet[index+2];
+endmodule
+
+module songFreqGen(clk, clkDivider, out);
+input clk;
+input[31:0] clkDivider;
+output reg out = 0;
+reg[31:0] counter;
+
+always @(posedge clk) begin
+	if (counter == 0) begin
+		counter <= clkDivider;
+		out = ~out;
+	end else begin
+		counter <= counter-1;
+	end
+end
 
 endmodule
 
@@ -94,7 +183,7 @@ or orgate(strummerEdge, strummerPos, strummerNeg);
 
 always @(posedge clk) begin
 	if (strummerEdge) begin
-		controlSignal = 6;
+		controlSignal = 7;
 		led = {switches};
 		case(switches)
 			7'b1000000: begin
@@ -221,13 +310,13 @@ always @(posedge clk ) begin
 end
 endmodule
 
-module mux3bit(input0, input1, control, out);
+module mux1bit(input0, input1, control, out);
 
-input[2:0] input0, input1;
+input input0, input1;
 input control;
-output[2:0] out;
+output out;
 
-wire[2:0] mux_input[1:0]; // Creates a 2d Array of wires
+wire mux_input[1:0]; // Creates a 2d Array of wires
 
 assign mux_input[0] = input0; // Connects the sources of the array
 assign mux_input[1] = input1;
