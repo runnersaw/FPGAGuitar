@@ -12,3 +12,13 @@ NET "sw[6]" LOC = M15;
 NET "sw[7]" LOC = N16;
 
 NET "btn" LOC = J13;
+NET "out" LOC = P16;
+
+NET "led[0]" LOC = L14;
+NET "led[1]" LOC = L13;
+NET "led[2]" LOC = M14;
+NET "led[3]" LOC = L12;
+NET "led[4]" LOC = N14;
+NET "led[5]" LOC = M13;
+NET "led[6]" LOC = P14;
+NET "led[7]" LOC = R16;

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 module topLevel(clk, sw, btn, out);
+=======
+module topLevel(clk, sw, out, led);
+>>>>>>> master
 input[7:0] sw;
 input btn;
 wire[2:0] controlSignal;
@@ -7,7 +11,9 @@ wire [6:0] noteOfSong;
 input clk;
 
 output out;
+output[7:0] led;
 
+<<<<<<< HEAD
 
 inputconditioner btnConditioner(clk, btn, btnPosEdge, btnNegEdge);
 
@@ -40,6 +46,10 @@ output out;
 
 inputconditioner conditioner(clk, switches[0], strummerPos, strummerNeg);
 controlSignalGen control(clk, switches[7:1], strummerPos, strummerNeg, controlSignal);
+=======
+inputconditioner conditioner(clk, sw[0], strummerPos, strummerNeg);
+controlSignalGen control(clk, sw[7:1], strummerPos, strummerNeg, controlSignal, led);
+>>>>>>> master
 frequencyGen frequency(clk, controlSignal, out);
 
 
@@ -70,13 +80,13 @@ assign note = musicSheet[index]
 
 endmodule
 
-module controlSignalGen(clk, switches, strummerPos, strummerNeg, controlSignal);
+module controlSignalGen(clk, switches, strummerPos, strummerNeg, controlSignal, led);
 
 input[6:0] switches;
 input strummerPos, strummerNeg, clk;
 output reg[2:0] controlSignal = 0;
+output reg[7:0] led = 1;
 
-wire[6:0] inputControl;
 wire strummerEdge;
 
 or orgate(strummerEdge, strummerPos, strummerNeg);
@@ -84,6 +94,7 @@ or orgate(strummerEdge, strummerPos, strummerNeg);
 always @(posedge clk) begin
 	if (strummerEdge) begin
 		controlSignal = 6;
+		led = {1'b0, switches};
 		case(switches)
 			7'b1000000: begin
 				controlSignal = 6;
