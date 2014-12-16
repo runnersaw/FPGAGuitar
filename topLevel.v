@@ -18,7 +18,6 @@ input[6:0] switches;
 input strummerPos, strummerNeg, clk;
 output reg[2:0] controlSignal = 0;
 
-wire[6:0] inputControl;
 wire strummerEdge;
 
 or orgate(strummerEdge, strummerPos, strummerNeg);
