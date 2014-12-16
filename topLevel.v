@@ -1,22 +1,24 @@
-module topLevel(clk, sw, out);
+module topLevel(clk, sw, out, led);
 input[7:0] sw;
 wire[2:0] controlSignal;
 wire strummerPos, strummerNeg;
 input clk;
 
 output out;
+output[7:0] led;
 
 inputconditioner conditioner(clk, sw[0], strummerPos, strummerNeg);
-controlSignalGen control(clk, sw[7:1], strummerPos, strummerNeg, controlSignal);
+controlSignalGen control(clk, sw[7:1], strummerPos, strummerNeg, controlSignal, led);
 frequencyGen frequency(clk, controlSignal, out);
 
 endmodule
 
-module controlSignalGen(clk, switches, strummerPos, strummerNeg, controlSignal);
+module controlSignalGen(clk, switches, strummerPos, strummerNeg, controlSignal, led);
 
 input[6:0] switches;
 input strummerPos, strummerNeg, clk;
 output reg[2:0] controlSignal = 0;
+output reg[7:0] led = 1;
 
 wire strummerEdge;
 
@@ -25,6 +27,7 @@ or orgate(strummerEdge, strummerPos, strummerNeg);
 always @(posedge clk) begin
 	if (strummerEdge) begin
 		controlSignal = 6;
+		led = {1'b0, switches};
 		case(switches)
 			7'b1000000: begin
 				controlSignal = 6;
