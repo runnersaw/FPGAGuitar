@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-module topLevel(clk, sw, btn, out);
-=======
-module topLevel(clk, sw, out, led);
->>>>>>> master
+module topLevel(clk, sw, btn, out, led);
 input[7:0] sw;
 input btn;
 wire[2:0] controlSignal;
@@ -12,8 +8,6 @@ input clk;
 
 output out;
 output[7:0] led;
-
-<<<<<<< HEAD
 
 inputconditioner btnConditioner(clk, btn, btnPosEdge, btnNegEdge);
 
@@ -46,10 +40,6 @@ output out;
 
 inputconditioner conditioner(clk, switches[0], strummerPos, strummerNeg);
 controlSignalGen control(clk, switches[7:1], strummerPos, strummerNeg, controlSignal);
-=======
-inputconditioner conditioner(clk, sw[0], strummerPos, strummerNeg);
-controlSignalGen control(clk, sw[7:1], strummerPos, strummerNeg, controlSignal, led);
->>>>>>> master
 frequencyGen frequency(clk, controlSignal, out);
 
 
